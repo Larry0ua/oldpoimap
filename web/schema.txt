@@ -1,0 +1,56 @@
+﻿pois_inspection:
+	id
+	osm_id - int64
+	osm_type (0,1,2) - int - 0 only used
+	osm_version
+	check_date
+#	name_check_date
+#	worktime_check_date
+#	type_check_date
+	centroid
+
+history:
+	poi_id
+	user
+	date
+	action
+
+
+
+
+
+
+
+-- phpMyAdmin SQL Dump
+-- version 3.5.8.1deb1
+-- http://www.phpmyadmin.net
+--
+-- Host: localhost
+-- Generation Time: Feb 14, 2014 at 05:38 PM
+-- Server version: 5.5.32-0ubuntu0.13.04.1
+-- PHP Version: 5.4.9-4ubuntu2.3
+
+SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
+SET time_zone = "+00:00";
+
+--
+-- Database: `pois`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `pois_inspection`
+--
+
+DROP TABLE IF EXISTS `pois_inspection`;
+CREATE TABLE IF NOT EXISTS `pois_inspection` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `osm_id` bigint(20) NOT NULL,
+  `osm_type` tinyint(4) NOT NULL,
+  `osm_version` int(11) NOT NULL,
+  `centroid` point NOT NULL,
+  `check_date` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `osm_id_2` (`osm_id`,`osm_type`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=355 ;
