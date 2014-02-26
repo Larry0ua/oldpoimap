@@ -1,5 +1,6 @@
 <?php
 error_reporting(E_ALL);
+date_default_timezone_set('UTC');
 require 'config.php';
 
 $data_text = '{"action":"put", "pois":[
@@ -17,7 +18,6 @@ $data = json_decode($data, true);
 if(!$data) die('No data provided');
 
 $c = new PDO('pgsql:dbname='.DB_NAME.';host=localhost;port=5432', DB_USER, DB_PASS);
-$utc = new DateTimeZone('UTC');
 
 // save from client to db
 $pois_to_save = array();
