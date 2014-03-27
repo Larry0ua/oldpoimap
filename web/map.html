@@ -13,37 +13,67 @@
       padding: 0;
       margin: 0;
     }
-    html, body, #map {
+    html, body {
       height: 100%;
       width: 100%;
     }
+	#map {
+		height: 60%;
+	}
+	#container {
+		position: relative;
+	}
+	#pois {
+		height: 40%;
+		width: 100%;
+		overflow: hidden;
+	}
+	.onepoi {
+		float: left;
+		height:100%;
+		border-right: 1px solid black;
+		padding-left: 2px;
+	}
+	#gps {
+		position: absolute;
+		top:0;
+		right:0;
+		width: 30px;
+		height: 30px;
+		background-color: red;
+	}
   </style>
 </head>
 <body>
-  <div id="map"/>
+  <div id="map"></div>
+  <div id="container"><div id="pois"></div><div id="gps"></div></div>
+  
   <script>
     var attr_osm = 'Map data &copy; <a href="http://openstreetmap.org/">OpenStreetMap</a> contributors',
       attr_overpass = 'POI via <a href="http://www.overpass-api.de/">Overpass API</a>';
     var osm = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {opacity: 0.7, attribution: [attr_osm, attr_overpass].join(', ')});
+	var RADIUS = 50;
 
-    var map = new L.Map('map').addLayer(osm).setView(new L.LatLng(48.290, 25.932), 17);
+    var myLocation = new L.LatLng(48.290, 25.932);
+    var map = new L.Map('map').addLayer(osm).setView(myLocation, 17);
 
     //OverPassAPI overlay
     var currentDate = new Date();
     var osmPois = {};
     var pois = {};
+	
     var poiInfo = function(obj, days) {
       var r = $('<table>');
       for (key in obj.tags)
         r.append($('<tr>').append($('<th>').text(key)).append($('<td>').text(obj.tags[key])));
-      r.append($('<tr>').append($('<th>').text('Days from last check')).append($('<td>').text(days)));
-      r.append($('<tr>').append($('<th>').text('_object_edit_user')).append($('<td>').text(obj.user)));// TODO: change to last-update user
-      var b = $('<input>', {type:'button', value:'Update as correct now!', onclick:'javascript:update_in_db('+obj.id+')'});
+      r.append($('<tr>').append($('<th>').text('Age')).append($('<td>').text(days)));
+//      r.append($('<tr>').append($('<th>').text('_object_edit_user')).append($('<td>').text(obj.user)));// TODO: change to last-update user
+      var b = $('<input>', {type:'button', value:'Update', onclick:'javascript:update_in_db('+obj.id+')'});
       return $('<div>').append(r).append($('<a>', {href:'http://www.openstreetmap.org/'+obj.type+'/'+obj.id,text:'OSM Link',target:'_blank'})).append($('<br>')).append(b).html();
     };
 
-    var opl = new L.OverPassLayer({
-      query: "http://overpass-api.de/api/interpreter?data=[out:json];node(BBOX)[amenity];out meta;",
+    var overpass = new L.OverPassLayer({
+      query: "http://overpass-api.de/api/interpreter?data=[out:json];node[amenity](BBOX);out meta;",
       callback: function(data) {
         for(i=0;i<data.elements.length;i++) {
           e = data.elements[i];
@@ -75,7 +105,41 @@
       }
       },
     });
-    map.addLayer(opl);
+	if(navigator.geolocation) {
+		var watch = navigator.geolocation.watchPosition(function(position) {
+			$("#pois").html("updated: " + position.coords.latitude + " " + position.coords.longitude);
+			map.setView(new L.LatLng(position.coords.latitude, position.coords.longitude), 17);
+		}, function(error) {
+			alert("Sorry, no position available.");
+		}, {enableHighAccuracy:true});
+	}
+    map.addLayer(overpass);
+	var centerCircle = new L.Circle(map.getCenter(), RADIUS);
+	map.addLayer(centerCircle);
+
+	map.on('move', function() {
+		var center = map.getCenter();
+		centerCircle.setLatLng(center);
+		var tmpArr = [];
+		for(var id in pois) {
+			var distance = center.distanceTo(pois[id].getLatLng());
+			if (distance <= RADIUS)
+				tmpArr.push([id, distance]);
+		}
+		tmpArr.sort(function(a,b) {return a[1]-b[1]});
+		$("#pois").html("");
+		for(var i=0;i<tmpArr.length&&i<10;i++){
+			$("#pois").append("<div class='onepoi' poiid='"+tmpArr[i][0]+"'>"+pois[tmpArr[i][0]]._popup.getContent()+"</div>"); // use getPopup in leaflet 0.8
+		}
+		$(".onepoi").on("click", function(){
+			var id = this.getAttribute('poiid');
+			pois[id].openPopup();
+		});
+	});
+
+	$("#gps").on('click', function() {
+		navigator.geolocation.clearWatch(watch);
+	});
     update_in_db = function(id) {
         $.post('savepoi.php', {
             action: 'update',
