@@ -210,7 +210,7 @@
 		$("#gps").click();
 	}
 
-    update_in_db = function(id) {
+    function update_in_db(id) {
         $.post('savepoi.php', {
             action: 'update',
             data: JSON.stringify({"id":id})
@@ -238,7 +238,7 @@
 		}
 	}
 	
-    create_circleMarker = function(e, modifiedTime) {
+    function create_circleMarker(e, modifiedTime) {
         var pos = new L.LatLng(e.lat, e.lon);
         var poiDate = Date.parse(modifiedTime);
         var daysOld = Math.round((currentDate - poiDate) / (60*60*24*1000));
@@ -254,7 +254,7 @@
         pois[e.id] = circle;
         return circle;
     }
-	colorByDays = function(id, daysOld) {
+	function colorByDays(id, daysOld) {
 		if(removedList.indexOf(id)>=0) {
 			return 'black';
 		}
