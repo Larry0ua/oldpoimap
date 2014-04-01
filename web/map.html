@@ -17,6 +17,19 @@
       height: 100%;
       width: 100%;
     }
+    #main {
+      height: 100%;
+      width: calc(100% - 2em);
+      width: -webkit-calc(100% - 2em);
+      position: fixed;
+      left: 2em;
+      top: 0;
+    }
+    #menu {
+      z-index: -1;
+      width: 150px;
+      height: 100%;
+    }
 	#map {
 		height: 60%;
 	}
@@ -59,9 +72,13 @@
   </style>
 </head>
 <body>
-  <div id="map"></div>
-  <div id="container"><div id="pois"></div><div id="gps"></div></div>
-  
+  <div id="menu">
+    <a href='#'>Hello Menu</a>
+  </div>
+  <div id="main">
+    <div id="map"></div>
+    <div id="container"><div id="pois"></div><div id="gps"></div></div>
+  </div>
   <script>
     var attr_osm = 'Map data &copy; <a href="http://openstreetmap.org/">OpenStreetMap</a> contributors',
       attr_overpass = 'POI via <a href="http://www.overpass-api.de/">Overpass API</a>';
@@ -71,7 +88,6 @@
 
     var map = new L.Map('map').addLayer(osm).setView(new L.LatLng(48.290, 25.932), 17);
 
-    //OverPassAPI overlay
     var currentDate = new Date();
     var osmPois = {};
     var pois = {};
@@ -223,6 +239,17 @@
         if (daysOld < 365) color = '#FFA62F';
 		return color;
 	}
+
+
+var menuOpened = 0;
+$('#menu').click(function() {
+	if(!menuOpened) {
+		$('#main').animate({marginLeft: '150px'}, 200, function(){menuOpened = true;});
+	} else {
+		$('#main').animate({marginLeft: '0'    }, 200, function(){menuOpened = false;});
+	}
+});
+
 
   </script>
 </body>
