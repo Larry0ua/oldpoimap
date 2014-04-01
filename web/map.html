@@ -27,10 +27,10 @@
     }
     #menu {
       z-index: -1;
-      width: 150px;
+      width: 250px;
       height: 100%;
 	  padding-left: 2em;
-	  background-color: grey;
+	  background-color: #aaa;
 	  display: table;
     }
 	.menu-img {
@@ -43,6 +43,7 @@
 		list-style-type:none;
 		margin:0;
 		padding:0;
+		margin-top: 40px;
 	}
 	#menu li {
 		width: 100%;
@@ -187,7 +188,7 @@
 	
 	if(navigator.geolocation) {
 		var watchGps = 0;
-		function gps_on() { $("#gps").css("background-color", "green");}
+		function gps_on() { $("#gps").css("background-color", "#cfc");}
 		function gps_wrk(){ $("#gps").css("background-color", "brown");}
 		function gps_off(){ $("#gps").css("background-color", "red");}
 		$("#gps").on('click', function() {
@@ -268,7 +269,7 @@
 	var menuOpened = 0;
 	$('#menu').click(function() {
 		if(!menuOpened) {
-			$('#main').animate({marginLeft: '150px'}, 150, function(){menuOpened = true;});
+			$('#main').animate({marginLeft: '250px'}, 150, function(){menuOpened = true;});
 		} else {
 			$('#main').animate({marginLeft: '0'    }, 150, function(){menuOpened = false;});
 		}
