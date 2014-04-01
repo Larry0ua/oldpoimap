@@ -29,13 +29,34 @@
       z-index: -1;
       width: 150px;
       height: 100%;
+	  padding-left: 2em;
+	  background-color: grey;
+	  display: table;
     }
+	.menu-img {
+		margin-left: -2em;
+		width: 2em;
+		height: 100%;
+		float:left;
+	}
+	#menu ul {
+		list-style-type:none;
+		margin:0;
+		padding:0;
+	}
+	#menu li {
+		width: 100%;
+		height: 30px;
+		border-bottom: 1px solid black;
+		cursor: pointer;
+	}
 	#map {
 		height: 60%;
 	}
 	#container {
 		position: relative;
 		height: 40%;
+		background-color: white;
 	}
 	#pois {
 		height: 100%;
@@ -61,23 +82,20 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
-	#gps {
-		position: absolute;
-		top:0;
-		right:0;
-		width: 30px;
-		height: 30px;
-		background-color: red;
-	}
   </style>
 </head>
 <body>
   <div id="menu">
-    <a href='#'>Hello Menu</a>
+    <div class="menu-img"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACZElEQVRYR+2WTUhWQRSGNQVXuZIopQQ3RrgJ9/mJEZJQi9IiCMFCCFpEKuHGnwSJUKFNEJRFC7WgNv1sQm1p4ML+iAilVFJXFhKUi+p5YT65XGfmer/vqhsPvMydOXPOee/MnDOTm7PNkrvN8XN2CGS6AnvYulFwCOwCM+A4+Bx3SzMlcIFAd0PBrtPv3AwCR3BaA+6DrybAVdr+ULBb9K+YsSLaS2AKPPORilqB8xgPgnywCM6CJfDELH/Q93c6J8zAY9oy891Oe8NFwkegFqMXQHucrTSZFVznx0egl9lin4Q8xEmjzZGPQCkGE2Bvlgx+Yp8COg+xVkCTZThusXvO2AB4C/6Bg+AyOGeZq3PzyPUTUYewAsP3IeMu+t0Ohzr5t0O6Y/RfxSGwn8k6/YXgpPm7tP0YH0fNX7t8jqA4E1DO8T0Efpl2OmhoW4FPoaDB+XV0Xroim/FK2knHHPlW9VwTGwHtqUuKUSxEEFDN+A3yLPNWGSvIhsA+jFWQfKLAf7IhsJlb8BFiOtjeLdAhrAe7gVJIKZYWpaTuBd82KeUaAjazfD8AK+Ap0M3pJRDU29LwJhOuOfaghfG+kE6ElT1WiaoDKax8hegN+r/gMHAVotPodHnFJpBUKf5B5CrwzsZgqy6jewS/GJdAktexbkLdiOsk6gzIUOyV2ypAumyWgcptMDvkeB6cAipEw+CAidZF67o7NvQs1/5VAz3JvhmnbbTKhqDoidZqBkpo9W78AJR6TolaAZdhM4o7IWUH/R5fMJsuUwJ6pLwG5capio1uyS9bRSBunMS3YIdAYivwHzrDZiGFEu8fAAAAAElFTkSuQmCC" alt="menu"/></div>
+	<ul>
+      <li id="gps">Following GPS location</li>
+	  <li id="getdel">Show removed POIs</li>
+	  <li id="clrdel">Clear removed POIs list</li>
+	</ul>
   </div>
   <div id="main">
     <div id="map"></div>
-    <div id="container"><div id="pois"></div><div id="gps"></div></div>
+    <div id="container"><div id="pois"></div></div>
   </div>
   <script>
     var attr_osm = 'Map data &copy; <a href="http://openstreetmap.org/">OpenStreetMap</a> contributors',
@@ -169,15 +187,22 @@
 	
 	if(navigator.geolocation) {
 		var watchGps = 0;
+		function gps_on() { $("#gps").css("background-color", "green");}
+		function gps_wrk(){ $("#gps").css("background-color", "brown");}
+		function gps_off(){ $("#gps").css("background-color", "red");}
 		$("#gps").on('click', function() {
 			if (watchGps == 0) {
+				gps_wrk();
 				watchGps = navigator.geolocation.watchPosition(function(position) {
+					gps_on();
 					//$("#pois").html("updated: " + position.coords.latitude + " " + position.coords.longitude);
 					map.setView(new L.LatLng(position.coords.latitude, position.coords.longitude), 17);
 				}, function(error) {
-					alert("Sorry, no position available.");
+					gps_off();
+					//alert("Sorry, no position available.");
 				}, {enableHighAccuracy:true});
 			} else {
+				gps_off();
 				navigator.geolocation.clearWatch(watchGps);
 				watchGps = 0;
 			}
@@ -240,16 +265,16 @@
 		return color;
 	}
 
+	var menuOpened = 0;
+	$('#menu').click(function() {
+		if(!menuOpened) {
+			$('#main').animate({marginLeft: '150px'}, 150, function(){menuOpened = true;});
+		} else {
+			$('#main').animate({marginLeft: '0'    }, 150, function(){menuOpened = false;});
+		}
+	});
 
-var menuOpened = 0;
-$('#menu').click(function() {
-	if(!menuOpened) {
-		$('#main').animate({marginLeft: '150px'}, 200, function(){menuOpened = true;});
-	} else {
-		$('#main').animate({marginLeft: '0'    }, 200, function(){menuOpened = false;});
-	}
-});
-
+	$("#menu ul").click(function(e) { e.stopPropagation();});
 
   </script>
 </body>
