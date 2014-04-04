@@ -100,12 +100,24 @@
   </div>
   <script>
     var attr_osm = 'Map data &copy; <a href="http://openstreetmap.org/">OpenStreetMap</a> contributors',
-      attr_overpass = 'POI via <a href="http://www.overpass-api.de/">Overpass API</a>';
+        attr_overpass = 'POI via <a href="http://www.overpass-api.de/">Overpass API</a>';
     var osm = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {opacity: 0.7, attribution: [attr_osm, attr_overpass].join(', ')});
 	var RADIUS = 50;
-	var removedList = localStorage.removedList ? JSON.parse(localStorage.removedList) : [];
+	var removedList = [];
+	var screenLat, screenLon, screenZoom;
+	if (typeof(Storage) != "undefined") {
+	  removedList = localStorage.removedList ? JSON.parse(localStorage.removedList) : [];
+	  screenLat = localStorage.screenLat;
+	  screenLon = localStorage.screenLon;
+	  screenZoom = localStorage.screenZoom;
+	  if (!screenZoom) {
+	    screenLat = 53.80;
+		screenLon = 35.07;
+		screenZoom = 4;
+	  }
+	}
 
-    var map = new L.Map('map').addLayer(osm).setView(new L.LatLng(48.290, 25.932), 17);
+    var map = new L.Map('map').addLayer(osm).setView(new L.LatLng(screenLat, screenLon), screenZoom);
 
     var currentDate = new Date();
     var osmPois = {};
@@ -185,6 +197,14 @@
 			pois[id].openPopup();
 		});
 	});
+    map.on('moveend', function() {
+      var center = map.getCenter();
+      if (typeof(Storage) != "undefined") {
+        localStorage.screenLat = center.lat;
+        localStorage.screenLat = center.lng;
+        localStorage.screenZoom = map.getZoom();
+      }
+    });
 	
 	if(navigator.geolocation) {
 		var watchGps = 0;
