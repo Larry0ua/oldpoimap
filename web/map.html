@@ -4,7 +4,7 @@
   <title>OverPass Layer Demo</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="http://code.jquery.com/jquery-1.8.0.min.js"></script>
+  <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
   <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
   <script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
   <script src="overpass-layer/OverPassLayer.js"></script>
@@ -107,9 +107,9 @@
 	var screenLat, screenLon, screenZoom;
 	if (typeof(Storage) != "undefined") {
 	  removedList = localStorage.removedList ? JSON.parse(localStorage.removedList) : [];
-	  screenLat = localStorage.screenLat;
-	  screenLon = localStorage.screenLon;
-	  screenZoom = localStorage.screenZoom;
+	  screenLat = localStorage.screenLat == "undefined" ? 0 : localStorage.screenLat;
+	  screenLon = localStorage.screenLon == "undefined" ? 0 : localStorage.screenLon;
+	  screenZoom = localStorage.screenZoom == "undefined" ? 0 : localStorage.screenZoom;
 	  if (!screenZoom) {
 	    screenLat = 53.80;
 		screenLon = 35.07;
@@ -140,11 +140,12 @@
 		.html();
     };
 
-    var overpass = new L.OverPassLayer({
-      query: "http://overpass-api.de/api/interpreter?data=[out:json];node[amenity](BBOX);out meta;",
+    var overpass = new L.OverPassExtendedLayer({
+      tags: ["amenity","tourism","shop","historic"],
       callback: function(data) {
         for(i=0;i<data.elements.length;i++) {
           e = data.elements[i];
+		  if(e.type!="node") continue;
 
           if (e.id in this.instance._ids) return;
           this.instance._ids[e.id] = true;
@@ -201,7 +202,7 @@
       var center = map.getCenter();
       if (typeof(Storage) != "undefined") {
         localStorage.screenLat = center.lat;
-        localStorage.screenLat = center.lng;
+        localStorage.screenLon = center.lng;
         localStorage.screenZoom = map.getZoom();
       }
     });

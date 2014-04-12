@@ -101,10 +101,11 @@ L.LatLngBounds.prototype.toOverpassBBoxString = function (){
   return [a.lat, a.lng, b.lat, b.lng].join(",");
 }
 
-L.OverPassLayer = L.FeatureGroup.extend({
+L.OverPassExtendedLayer = L.FeatureGroup.extend({
   options: {
     minzoom: 15,
-    query: "http://overpass-api.de/api/interpreter?data=[out:json];(node(BBOX)[organic];node(BBOX)[second_hand];);out qt;",
+    query: "http://overpass-api.de/api/interpreter?data=[out:json];(QUERY);out meta;",
+	tags : ["amenity=restaurant"],
     callback: function(data) {
         if (this.instance._map == null) {
             console.error("_map == null");
@@ -196,7 +197,7 @@ L.OverPassLayer = L.FeatureGroup.extend({
   },
 
   onMoveEnd: function () {
-      console.log("load Pois");
+      //console.log("load Pois");
       //console.log(this._map.getBounds());
       if (this._map.getZoom() >= this.options.minzoom) {
           //var bboxList = new Array(this._map.getBounds());
@@ -218,9 +219,16 @@ L.OverPassLayer = L.FeatureGroup.extend({
               }
               this._requested[x][y] = true;
               //this.addBBox(x,bbox._southWest.lat,bbox._northEast.lng,y);
+			  
+			  var query = "";
+			  for(var i=0;i<this.options.tags.length;i++) {
+				query += "node(BBOX)["+this.options.tags[i]+"];";
+				//query += "way(BBOX)["+this.options.tags[i]+"];>;";
+			  }
+			  // add "node(BBOX)[(TAG)];" into QUERY
 
               $.ajax({
-                  url: this.options.query.replace(/(BBOX)/g, bbox.toOverpassBBoxString()),
+                  url: this.options.query.replace(/QUERY/g, query).replace(/(BBOX)/g, bbox.toOverpassBBoxString()),
                   context: { instance: this },
                   crossDomain: true,
                   dataType: "json",
@@ -243,10 +251,8 @@ L.OverPassLayer = L.FeatureGroup.extend({
       }
 
       this.onMoveEnd();
-      if (this.options.query.indexOf("(BBOX)") != -1) {
-          map.on('moveend', this.onMoveEnd, this);
-      }
-      console.log("add layer");
+      map.on('moveend', this.onMoveEnd, this);
+      //console.log("add layer");
   },
 
   onRemove: function (map) {
@@ -270,7 +276,3 @@ L.OverPassLayer = L.FeatureGroup.extend({
 
 });
 
-//FIXME no idea why the browser crashes with this code
-//L.OverPassLayer = function (options) {
-//  return new L.OverPassLayer(options);
-//};
