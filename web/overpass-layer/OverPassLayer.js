@@ -105,25 +105,34 @@ L.OverPassExtendedLayer = L.FeatureGroup.extend({
   options: {
     minzoom: 15,
     query: "http://overpass-api.de/api/interpreter?data=[out:json];(QUERY);out meta;",
-	tags : ["amenity=restaurant"],
-    callback: function(data) {
+    updateApi: "api/poi/",
+    tags : ["amenity=restaurant"],
+    callbackOverpass: function(data) {
         if (this.instance._map == null) {
             console.error("_map == null");
         }
-      for(i=0;i<data.elements.length;i++) {
-        e = data.elements[i];
+        for(i=0;i<data.elements.length;i++) {
+          e = data.elements[i];
+          if(e.type!="node") continue;
 
-        if (e.id in this.instance._ids) return;
-        this.instance._ids[e.id] = true;
-        var pos = new L.LatLng(e.lat, e.lon);
-        var popup = this.instance._poiInfo(e.tags,e.id);
-        var circle = L.circle(pos, 50, {
-            color: 'green',
-            fillColor: '#3f0',
-            fillOpacity: 0.5
-        })
-          .bindPopup(popup);
+          if (e.id in this.instance._ids) return;
+          this.instance._ids[e.id] = true;
+          this.instance.osmPois[e.id] = e;
+          
+          var circle = this.instance.createCircleMarker(e, this.instance.updateInfo[e.id] || e.timestamp);
           this.instance.addLayer(circle);
+        }
+    },
+    callbackUpdateApi: function(data) {
+      // returns [{id:123, updated:'date'},]
+      for(var i=0;i<data.length;i++) {
+        var id = data[i].id;
+        if(!this.instance.updateInfo[id]) {
+          this.instance.updateInfo[id]=data[i].updated;
+          if(this.instance.osmPois[id]) {
+            this.instance.redrawCircleMarker(id, data[i].updated);
+          }
+        }
       }
     }
   },
@@ -134,14 +143,57 @@ L.OverPassExtendedLayer = L.FeatureGroup.extend({
     // save position of the layer or any options from the constructor
     this._ids = {};
     this._requested = {};
+    this.osmPois = {};
+    this.pois = {};
+    this.updateInfo = {};
   },
 
-  _poiInfo: function(tags,id) {
-    var link = '<a href="http://www.openstreetmap.org/edit?editor=id&node='+id+'">Edit this entry in iD</a><br>';
+  poiInfo: function(obj, days) {
     var r = $('<table>');
-    for (key in tags)
-      r.append($('<tr>').append($('<th>').text(key)).append($('<td>').text(tags[key])));
-    return link + $('<div>').append(r).html();
+    for (key in obj.tags)
+      r.append($('<tr>').append($('<th>').text(key)).append($('<td>').text(obj.tags[key])));
+    r.append($('<tr>').append($('<th>').text('Age')).append($('<td>').css('background-color', this.colorByDays(obj.id, days)).text(days)));
+    var b = $('<input>', {type:'button', value:'Update', onclick:'javascript:update_in_db('+obj.id+')'});
+    var del = $('<input>', {type:'button', value:'Remove', onclick:'javascript:remove_from_db('+obj.id+')'});
+    return $('<div>').append(r)
+      //.append($('<br>'))
+      .append(b)
+      //.append($('<br>'))
+      .append(del)
+      .html();
+  },
+  redrawCircleMarker: function(id, modifiedTime) {
+    this._map.removeLayer(this.pois[id]);
+    var newCircle = this.createCircleMarker(this.osmPois[id], modifiedTime);
+    this._map.addLayer(newCircle);
+  },
+  
+  createCircleMarker: function(e, modifiedTime) {
+    var pos = new L.LatLng(e.lat, e.lon);
+    var poiDate = Date.parse(modifiedTime);
+    var daysOld = Math.round((new Date() - poiDate) / (60*60*24*1000));
+    var popup = this.poiInfo(e, daysOld);
+    var color = this.colorByDays(e.id, daysOld);
+    var circle = L.circleMarker(pos, {
+      color: color,
+      fillColor: color,
+      fillOpacity: 0.5
+    })
+    .bindPopup(popup);
+    circle._osm_age = daysOld;
+    this.pois[e.id] = circle;
+    return circle;
+  },
+  
+  colorByDays: function(id, daysOld) {
+    if(removedList.indexOf(id)>=0) {
+      return 'black';
+    }
+    var color = 'red';
+    if (daysOld < 90) color = 'green'; else
+    if (daysOld < 180) color = 'yellow'; else
+    if (daysOld < 365) color = '#FFA62F';
+    return color;
   },
 
   /**
@@ -197,46 +249,54 @@ L.OverPassExtendedLayer = L.FeatureGroup.extend({
   },
 
   onMoveEnd: function () {
-      //console.log("load Pois");
-      //console.log(this._map.getBounds());
-      if (this._map.getZoom() >= this.options.minzoom) {
-          //var bboxList = new Array(this._map.getBounds());
-          var bboxList = this._view2BBoxes(
-                  this._map.getBounds()._southWest.lng,
-                  this._map.getBounds()._southWest.lat,
-                  this._map.getBounds()._northEast.lng,
-                  this._map.getBounds()._northEast.lat);
+    //console.log("load Pois");
+    //console.log(this._map.getBounds());
+    if (this._map.getZoom() >= this.options.minzoom) {
+      //var bboxList = new Array(this._map.getBounds());
+      var bboxList = this._view2BBoxes(
+              this._map.getBounds()._southWest.lng,
+              this._map.getBounds()._southWest.lat,
+              this._map.getBounds()._northEast.lng,
+              this._map.getBounds()._northEast.lat);
 
-          for (var i=0; i<bboxList.length; i++) {
-              var bbox = bboxList[i];
-              var x = bbox._southWest.lng;
-              var y = bbox._northEast.lat;
-              if ((x in this._requested) && (y in this._requested[x]) && (this._requested[x][y] == true)) {
-                  continue;
-              }
-              if (!(x in this._requested)) {
-                  this._requested[x] = {};
-              }
-              this._requested[x][y] = true;
-              //this.addBBox(x,bbox._southWest.lat,bbox._northEast.lng,y);
-			  
-			  var query = "";
-			  for(var i=0;i<this.options.tags.length;i++) {
-				query += "node(BBOX)["+this.options.tags[i]+"];";
-				//query += "way(BBOX)["+this.options.tags[i]+"];>;";
-			  }
-			  // add "node(BBOX)[(TAG)];" into QUERY
-
-              $.ajax({
-                  url: this.options.query.replace(/QUERY/g, query).replace(/(BBOX)/g, bbox.toOverpassBBoxString()),
-                  context: { instance: this },
-                  crossDomain: true,
-                  dataType: "json",
-                  data: {},
-                  success: this.options.callback
-              });
+      for (var i=0; i<bboxList.length; i++) {
+          var bbox = bboxList[i];
+          var x = bbox._southWest.lng;
+          var y = bbox._northEast.lat;
+          if ((x in this._requested) && (y in this._requested[x]) && (this._requested[x][y] == true)) {
+              continue;
           }
+          if (!(x in this._requested)) {
+              this._requested[x] = {};
+          }
+          this._requested[x][y] = true;
+          //this.addBBox(x,bbox._southWest.lat,bbox._northEast.lng,y);
+    
+        var query = "";
+        for(var i=0;i<this.options.tags.length;i++) {
+        query += "node(BBOX)["+this.options.tags[i]+"];";
+        //query += "way(BBOX)["+this.options.tags[i]+"];>;";
+        }
+        // add "node(BBOX)[(TAG)];" into QUERY
+
+        $.ajax({
+          url: this.options.query.replace(/QUERY/g, query).replace(/(BBOX)/g, bbox.toOverpassBBoxString()),
+          context: { instance: this },
+          crossDomain: true,
+          dataType: "json",
+          data: {},
+          success: this.options.callbackOverpass
+        });
+        $.ajax({
+          url: this.options.updateApi + "?" + bbox.toOverpassBBoxString(),
+          context: { instance: this },
+          dataType: "json",
+          data: {},
+          method: "get",
+          success: this.options.callbackUpdateApi
+        });
       }
+    }
   },
 
   onAdd: function (map) {
@@ -270,7 +330,7 @@ L.OverPassExtendedLayer = L.FeatureGroup.extend({
   },
 
   getData: function () {
-    console.log(this._data);
+    //console.log(this._data);
     return this._data;
   }
 

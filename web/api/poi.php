@@ -27,17 +27,17 @@ if ($method == 'GET' && preg_match("/\/api\/poi\/(\\d+)(\/[nwr])?$/", $request, 
 	} else {
 		echo json_encode(array('id'=>$row['osm_id'], 'updated'=>$row['check_date']));
 	}
-} else if ($method == 'GET' && preg_match("/\/api\/poi\/\?([0-9.,]+)$/", $request, $result)) {
+} else if ($method == 'GET' && preg_match("/\/api\/poi\/\?([0-9.,-]+)$/", $request, $result)) {
 	$bbox = $result[1];
 	$coords = explode(',', $bbox); // x1, y1, x2, y2
 	if (count($coords) != 4) {
 		header("HTTP/1.0 400 Bad request");
 		die();
 	}
-	$x1 = floatval($coords[0]);
-	$y1 = floatval($coords[1]);
-	$x2 = floatval($coords[2]);
-	$y2 = floatval($coords[3]);
+	$y1 = floatval($coords[0]);
+	$x1 = floatval($coords[1]);
+	$y2 = floatval($coords[2]);
+	$x2 = floatval($coords[3]);
 
 	$s = abs(($x1-$x2)*($y1-$y2));
 	if ($s > MAX_SQ || $s == 0) {

@@ -120,61 +120,11 @@
     var map = new L.Map('map').addLayer(osm).setView(new L.LatLng(screenLat, screenLon), screenZoom);
 
     var currentDate = new Date();
-    var osmPois = {};
-    var pois = {};
-	
-    var poiInfo = function(obj, days) {
-      var r = $('<table>');
-      for (key in obj.tags)
-        r.append($('<tr>').append($('<th>').text(key)).append($('<td>').text(obj.tags[key])));
-      r.append($('<tr>').append($('<th>').text('Age')).append($('<td>').css('background-color', colorByDays(obj.id, days)).text(days)));
-//      r.append($('<tr>').append($('<th>').text('_object_edit_user')).append($('<td>').text(obj.user)));// TODO: change to last-update user
-      var b = $('<input>', {type:'button', value:'Update', onclick:'javascript:update_in_db('+obj.id+')'});
-	  var del = $('<input>', {type:'button', value:'Remove', onclick:'javascript:remove_from_db('+obj.id+')'});
-      return $('<div>').append(r)
-		//.append($('<a>', {href:'http://www.openstreetmap.org/'+obj.type+'/'+obj.id,text:'OSM Link',target:'_blank'}))
-		//.append($('<br>'))
-		.append(b)
-		//.append($('<br>'))
-		.append(del)
-		.html();
-    };
 
     var overpass = new L.OverPassExtendedLayer({
       tags: ["amenity","tourism","shop","historic"],
-      callback: function(data) {
-        for(i=0;i<data.elements.length;i++) {
-          e = data.elements[i];
-		  if(e.type!="node") continue;
-
-          if (e.id in this.instance._ids) return;
-          this.instance._ids[e.id] = true;
-          osmPois[e.id] = e;
-          
-          var circle = create_circleMarker(e, e.timestamp);
-          this.instance.addLayer(circle);
-        }
-        el = data.elements;
-        if(el.length>0) {
-          $.post('savepoi.php',
-            {
-                action: 'put',
-                data: JSON.stringify(el)
-            },
-            function(data) {
-                for(var id in data.newer) {
-                    if(parseInt(id) > 0) {
-                        map.removeLayer(pois[id]);
-                        var newCircle = create_circleMarker(osmPois[id], data.newer[id]);
-                        map.addLayer(newCircle);
-                    }
-                }
-            },
-            'json');
-      }
-      },
     });
-	
+
     map.addLayer(overpass);
 	var centerCircle = new L.Circle(map.getCenter(), RADIUS);
 	map.addLayer(centerCircle);
@@ -183,19 +133,19 @@
 		var center = map.getCenter();
 		centerCircle.setLatLng(center);
 		var tmpArr = [];
-		for(var id in pois) {
-			var distance = center.distanceTo(pois[id].getLatLng());
+		for(var id in overpass.pois) {
+			var distance = center.distanceTo(overpass.pois[id].getLatLng());
 			if (distance <= RADIUS && removedList.indexOf(parseInt(id)) < 0)
-				tmpArr.push([id, pois[id]._osm_age]);
+				tmpArr.push([id, overpass.pois[id]._osm_age]);
 		}
 		tmpArr.sort(function(a,b) {return b[1]-a[1]});
 		$("#pois").html("");
 		for(var i=0;i<tmpArr.length&&i<10;i++){
-			$("#pois").append("<div class='onepoi' poiid='"+tmpArr[i][0]+"'>"+pois[tmpArr[i][0]]._popup.getContent()+"</div>"); // use getPopup in leaflet 0.8
+			$("#pois").append("<div class='onepoi' poiid='"+tmpArr[i][0]+"'>"+overpass.pois[tmpArr[i][0]]._popup.getContent()+"</div>"); // use getPopup in leaflet 0.8
 		}
 		$(".onepoi").on("click", function(){
 			var id = this.getAttribute('poiid');
-			pois[id].openPopup();
+			overpass.pois[id].openPopup();
 		});
 	});
     map.on('moveend', function() {
@@ -239,8 +189,8 @@
         },
         function(data) {
             if(data.updated>0) {
-                map.removeLayer(pois[id]);
-                var newCircle = create_circleMarker(osmPois[id], currentDate);
+                map.removeLayer(ovepass.pois[id]);
+                var newCircle = overpass.create_circleMarker(overpass.osmPois[id], new Date());
                 map.addLayer(newCircle);
             } else {
                 alert(data.message);
@@ -254,39 +204,12 @@
 		} else {
 			removedList.push(id);
 			localStorage.removedList = JSON.stringify(removedList);
-			map.removeLayer(pois[id]);
-			var newCircle = create_circleMarker(osmPois[id], currentDate);
+			map.removeLayer(overpass.pois[id]);
+			var newCircle = overpass.create_circleMarker(overpass.osmPois[id], new Date());
 			map.addLayer(newCircle);
 		}
 	}
 	
-    function create_circleMarker(e, modifiedTime) {
-        var pos = new L.LatLng(e.lat, e.lon);
-        var poiDate = Date.parse(modifiedTime);
-        var daysOld = Math.round((currentDate - poiDate) / (60*60*24*1000));
-        var popup = poiInfo(e, daysOld);
-        var color = colorByDays(e.id, daysOld);
-        var circle = L.circleMarker(pos, {
-            color: color,
-            fillColor: color,
-            fillOpacity: 0.5
-        })
-        .bindPopup(popup);
-		circle._osm_age = daysOld;
-        pois[e.id] = circle;
-        return circle;
-    }
-	function colorByDays(id, daysOld) {
-		if(removedList.indexOf(id)>=0) {
-			return 'black';
-		}
-		var color = 'red';
-        if (daysOld < 90) color = 'green'; else
-        if (daysOld < 180) color = 'yellow'; else
-        if (daysOld < 365) color = '#FFA62F';
-		return color;
-	}
-
 	var menuOpened = 0;
 	$('#menu').click(function() {
 		if(!menuOpened) {
