@@ -6,9 +6,9 @@ require '../config.php';
 $request = $_SERVER['REQUEST_URI'];
 $method = $_SERVER['REQUEST_METHOD'];
 /*
-get: /api/poi/123 - returns poi {id:123, updated:'date'} or 404 if not set
+get: /api/poi/123 - returns poi [{id:123, updated:'date'}] or 404 if not set
 get: /api/poi/?1,2,3,4 - returns [{id:123, updated:'date'},]
-post: /api/poi/ - add 123 as updated now, body: {id:123, lat:1, lng: 1}
+post: /api/poi/ - add 123 as updated now, post params: id:123, lat:1, lng: 1, returns same object as methods above
 put: - no need to update in db
 delete: /api/poi/123 - remove from database as osm has a newer version. server-side check?
 */
@@ -25,8 +25,11 @@ if ($method == 'GET' && preg_match("/\/api\/poi\/(\\d+)(\/[nwr])?$/", $request, 
 		header("HTTP/1.0 404 Not Found");
 		die();
 	} else {
-		echo json_encode(array('id'=>$row['osm_id'], 'updated'=>$row['check_date']));
+		echo json_encode(array(array('id'=>$row['osm_id'], 'updated'=>$row['check_date'])));
 	}
+
+//////////////////////////////////////////////////////////////////////////////////
+
 } else if ($method == 'GET' && preg_match("/\/api\/poi\/\?([0-9.,-]+)$/", $request, $result)) {
 	$bbox = $result[1];
 	$coords = explode(',', $bbox); // x1, y1, x2, y2
@@ -53,10 +56,16 @@ if ($method == 'GET' && preg_match("/\/api\/poi\/(\\d+)(\/[nwr])?$/", $request, 
 		$result[] = array('id'=>$row['osm_id'], 'updated'=>$row['check_date']);
 	}
 	echo json_encode($result);
+
+//////////////////////////////////////////////////////////////////////////////////
+
 } elseif ($method == 'POST' && preg_match('/\/api\/poi\/$/', $request)) {
-	$object = json_decode(file_get_contents("php://input"), true);
+	$object['id'] = $_POST['id'];
+  $object['lat'] = $_POST['lat'];
+  $object['lng'] = $_POST['lng'];
+
 	$osm_id = $object['id'];
-	if (intval($osm_id) != $osm_id || $osm_id <= 0) {
+	if (!is_numeric($osm_id) || $osm_id <= 0) {
 		header("HTTP/1.0 409 Bad Request");
 		die();
 	}
@@ -68,9 +77,16 @@ if ($method == 'GET' && preg_match("/\/api\/poi\/(\\d+)(\/[nwr])?$/", $request, 
 		$stmt = $c->prepare('update pois_inspection set check_date=CURRENT_TIMESTAMP where osm_id = ?');
 		$stmt->execute(array($osm_id));
 	} else {
-		$stmt = $c->prepare('insert into pois_inspection (osm_id, check_date, centroid) values (?, CURRENT_TIMESTAMP, point(?, ?))');
+		$stmt = $c->prepare('insert into pois_inspection (osm_id, check_date, lat, lng) values (?, CURRENT_TIMESTAMP, ?, ?)');
 		$stmt->execute(array($osm_id, $object['lat'], $object['lng']));
 	}
+  $stmt = $c->prepare('select * from pois_inspection where osm_id = ?');
+	$stmt->execute(array($osm_id));
+	$row = $stmt->fetch(PDO::FETCH_ASSOC);
+  echo json_encode(array(array('id'=>$row['osm_id'], 'updated'=>$row['check_date'])));
+
+//////////////////////////////////////////////////////////////////////////////////
+
 } elseif ($method == 'DELETE' && preg_match("/\/api\/poi\/(\\d+)(\/[nwr])?$/", $request, $result)) {
 	$c = db_connect();
 	$stmt = $c->prepare('delete from pois_inspection where osm_id = ?');

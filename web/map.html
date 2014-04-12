@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>OverPass Layer Demo</title>
+  <title>POI Updater</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
@@ -99,9 +99,9 @@
     <div id="container"><div id="pois"></div></div>
   </div>
   <script>
-    var attr_osm = 'Map data &copy; <a href="http://openstreetmap.org/">OpenStreetMap</a> contributors',
-        attr_overpass = 'POI via <a href="http://www.overpass-api.de/">Overpass API</a>';
-    var osm = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {opacity: 0.7, attribution: [attr_osm, attr_overpass].join(', ')});
+  var attr_osm = 'Map data &copy; <a href="http://openstreetmap.org/">OpenStreetMap</a> contributors',
+    attr_overpass = 'POI via <a href="http://www.overpass-api.de/">Overpass API</a>';
+  var osm = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {opacity: 0.7, attribution: [attr_osm, attr_overpass].join(', ')});
 	var RADIUS = 50;
 	var removedList = [];
 	var screenLat, screenLon, screenZoom;
@@ -117,19 +117,19 @@
 	  }
 	}
 
-    var map = new L.Map('map').addLayer(osm).setView(new L.LatLng(screenLat, screenLon), screenZoom);
+  var map = new L.Map('map').addLayer(osm).setView(new L.LatLng(screenLat, screenLon), screenZoom);
 
-    var currentDate = new Date();
+  var currentDate = new Date();
 
-    var overpass = new L.OverPassExtendedLayer({
-      tags: ["amenity","tourism","shop","historic"],
-    });
+  var overpass = new L.OverPassExtendedLayer({
+    tags: ["amenity","tourism","shop","historic"],
+  });
+  map.addLayer(overpass);
 
-    map.addLayer(overpass);
 	var centerCircle = new L.Circle(map.getCenter(), RADIUS);
 	map.addLayer(centerCircle);
 
-	map.on('drag', function() {
+  function moveHandler() {
 		var center = map.getCenter();
 		centerCircle.setLatLng(center);
 		var tmpArr = [];
@@ -147,15 +147,17 @@
 			var id = this.getAttribute('poiid');
 			overpass.pois[id].openPopup();
 		});
-	});
-    map.on('moveend', function() {
-      var center = map.getCenter();
-      if (typeof(Storage) != "undefined") {
-        localStorage.screenLat = center.lat;
-        localStorage.screenLon = center.lng;
-        localStorage.screenZoom = map.getZoom();
-      }
-    });
+	}
+  
+	map.on('move', moveHandler);
+  map.on('moveend', function() {
+    var center = map.getCenter();
+    if (typeof(Storage) != "undefined") {
+      localStorage.screenLat = center.lat;
+      localStorage.screenLon = center.lng;
+      localStorage.screenZoom = map.getZoom();
+    }
+  });
 	
 	if(navigator.geolocation) {
 		var watchGps = 0;
@@ -182,21 +184,11 @@
 		$("#gps").click();
 	}
 
-    function update_in_db(id) {
-        $.post('savepoi.php', {
-            action: 'update',
-            data: JSON.stringify({"id":id})
-        },
-        function(data) {
-            if(data.updated>0) {
-                map.removeLayer(ovepass.pois[id]);
-                var newCircle = overpass.create_circleMarker(overpass.osmPois[id], new Date());
-                map.addLayer(newCircle);
-            } else {
-                alert(data.message);
-            }
-        }, 'json');
-    }
+  function update_in_db(id) {
+    overpass.updatePoi(id);
+    moveHandler();
+  }
+  
 	function remove_from_db(id) {
 		// show an alert for the first time
 		if (typeof(Storage) == "undefined") {

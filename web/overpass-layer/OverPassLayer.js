@@ -124,13 +124,15 @@ L.OverPassExtendedLayer = L.FeatureGroup.extend({
         }
     },
     callbackUpdateApi: function(data) {
+      var instance = this;
+      if(this.instance) instance = this.instance;
       // returns [{id:123, updated:'date'},]
       for(var i=0;i<data.length;i++) {
         var id = data[i].id;
-        if(!this.instance.updateInfo[id]) {
-          this.instance.updateInfo[id]=data[i].updated;
-          if(this.instance.osmPois[id]) {
-            this.instance.redrawCircleMarker(id, data[i].updated);
+        if(instance.updateInfo[id]!=data[i].updated) {
+          instance.updateInfo[id]=data[i].updated;
+          if(instance.osmPois[id]) {
+            instance.redrawCircleMarker(id, data[i].updated);
           }
         }
       }
@@ -155,10 +157,9 @@ L.OverPassExtendedLayer = L.FeatureGroup.extend({
     r.append($('<tr>').append($('<th>').text('Age')).append($('<td>').css('background-color', this.colorByDays(obj.id, days)).text(days)));
     var b = $('<input>', {type:'button', value:'Update', onclick:'javascript:update_in_db('+obj.id+')'});
     var del = $('<input>', {type:'button', value:'Remove', onclick:'javascript:remove_from_db('+obj.id+')'});
-    return $('<div>').append(r)
-      //.append($('<br>'))
+    return $('<div>')
+      .append(r)
       .append(b)
-      //.append($('<br>'))
       .append(del)
       .html();
   },
@@ -178,8 +179,7 @@ L.OverPassExtendedLayer = L.FeatureGroup.extend({
       color: color,
       fillColor: color,
       fillOpacity: 0.5
-    })
-    .bindPopup(popup);
+    }).bindPopup(popup);
     circle._osm_age = daysOld;
     this.pois[e.id] = circle;
     return circle;
@@ -194,6 +194,22 @@ L.OverPassExtendedLayer = L.FeatureGroup.extend({
     if (daysOld < 180) color = 'yellow'; else
     if (daysOld < 365) color = '#FFA62F';
     return color;
+  },
+  
+  updatePoi: function(id) {
+    $.ajax({
+      url: this.options.updateApi,
+      context: { instance: this },
+      dataType: "json",
+      data: {"id": id, "lat": this.osmPois[id].lat, "lng": this.osmPois[id].lon},
+      method: "post",
+      error: function() {
+        alert("POI "+id+" was not saved");
+      }
+      //success: this.options.callbackUpdateApi
+    });
+    var data = [{"id":id, updated:new Date()}];
+    this.options.callbackUpdateApi.call(this, data);
   },
 
   /**
