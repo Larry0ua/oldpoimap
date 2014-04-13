@@ -29,70 +29,70 @@
       z-index: -1;
       width: 250px;
       height: 100%;
-	  padding-left: 2em;
-	  background-color: #aaa;
-	  display: table;
+    padding-left: 2em;
+    background-color: #aaa;
+    display: table;
     }
-	.menu-img {
-		margin-left: -2em;
-		width: 2em;
-		height: 100%;
-		float:left;
-	}
-	#menu ul {
-		list-style-type:none;
-		margin:0;
-		padding:0;
-		margin-top: 40px;
-	}
-	#menu li {
-		width: 100%;
-		height: 30px;
-		border-bottom: 1px solid black;
-		cursor: pointer;
-	}
-	#map {
-		height: 60%;
-	}
-	#container {
-		position: relative;
-		height: 40%;
-		background-color: white;
-	}
-	#pois {
-		height: 100%;
-		width: 100%;
-		overflow: hidden;
-	}
-	.onepoi {
-		float: left;
-		height: 100%;
-		width : 255px;
-		border-right: 1px solid black;
-		padding-left: 2px;
-	}
-	.onepoi th {
-		width: 100px;
-		max-width: 100px;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-	.onepoi td {
-		width: 150px;
-		max-width: 150px;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
+  .menu-img {
+    margin-left: -2em;
+    width: 2em;
+    height: 100%;
+    float:left;
+  }
+  #menu ul {
+    list-style-type:none;
+    margin:0;
+    padding:0;
+    margin-top: 40px;
+  }
+  #menu li {
+    width: 100%;
+    height: 30px;
+    border-bottom: 1px solid black;
+    cursor: pointer;
+  }
+  #map {
+    height: 60%;
+  }
+  #container {
+    position: relative;
+    height: 40%;
+    background-color: white;
+  }
+  #pois {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
+  .onepoi {
+    float: left;
+    height: 100%;
+    width : 255px;
+    border-right: 1px solid black;
+    padding-left: 2px;
+  }
+  .onepoi th {
+    width: 100px;
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .onepoi td {
+    width: 150px;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   </style>
 </head>
 <body>
   <div id="menu">
     <div class="menu-img"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACZElEQVRYR+2WTUhWQRSGNQVXuZIopQQ3RrgJ9/mJEZJQi9IiCMFCCFpEKuHGnwSJUKFNEJRFC7WgNv1sQm1p4ML+iAilVFJXFhKUi+p5YT65XGfmer/vqhsPvMydOXPOee/MnDOTm7PNkrvN8XN2CGS6AnvYulFwCOwCM+A4+Bx3SzMlcIFAd0PBrtPv3AwCR3BaA+6DrybAVdr+ULBb9K+YsSLaS2AKPPORilqB8xgPgnywCM6CJfDELH/Q93c6J8zAY9oy891Oe8NFwkegFqMXQHucrTSZFVznx0egl9lin4Q8xEmjzZGPQCkGE2Bvlgx+Yp8COg+xVkCTZThusXvO2AB4C/6Bg+AyOGeZq3PzyPUTUYewAsP3IeMu+t0Ohzr5t0O6Y/RfxSGwn8k6/YXgpPm7tP0YH0fNX7t8jqA4E1DO8T0Efpl2OmhoW4FPoaDB+XV0Xroim/FK2knHHPlW9VwTGwHtqUuKUSxEEFDN+A3yLPNWGSvIhsA+jFWQfKLAf7IhsJlb8BFiOtjeLdAhrAe7gVJIKZYWpaTuBd82KeUaAjazfD8AK+Ap0M3pJRDU29LwJhOuOfaghfG+kE6ElT1WiaoDKax8hegN+r/gMHAVotPodHnFJpBUKf5B5CrwzsZgqy6jewS/GJdAktexbkLdiOsk6gzIUOyV2ypAumyWgcptMDvkeB6cAipEw+CAidZF67o7NvQs1/5VAz3JvhmnbbTKhqDoidZqBkpo9W78AJR6TolaAZdhM4o7IWUH/R5fMJsuUwJ6pLwG5capio1uyS9bRSBunMS3YIdAYivwHzrDZiGFEu8fAAAAAElFTkSuQmCC" alt="menu"/></div>
-	<ul>
+  <ul>
       <li id="gps">Following GPS location</li>
-	  <li id="getdel">Show removed POIs</li>
-	  <li id="clrdel">Clear removed POIs list</li>
-	</ul>
+    <li id="getdel">Show removed POIs</li>
+    <li id="clrdel">Clear removed POIs list</li>
+  </ul>
   </div>
   <div id="main">
     <div id="map"></div>
@@ -102,20 +102,20 @@
   var attr_osm = 'Map data &copy; <a href="http://openstreetmap.org/">OpenStreetMap</a> contributors',
     attr_overpass = 'POI via <a href="http://www.overpass-api.de/">Overpass API</a>';
   var osm = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {opacity: 0.7, attribution: [attr_osm, attr_overpass].join(', ')});
-	var RADIUS = 50;
-	var removedList = [];
-	var screenLat, screenLon, screenZoom;
-	if (typeof(Storage) != "undefined") {
-	  removedList = localStorage.removedList ? JSON.parse(localStorage.removedList) : [];
-	  screenLat = localStorage.screenLat == "undefined" ? 0 : localStorage.screenLat;
-	  screenLon = localStorage.screenLon == "undefined" ? 0 : localStorage.screenLon;
-	  screenZoom = localStorage.screenZoom == "undefined" ? 0 : localStorage.screenZoom;
-	  if (!screenZoom) {
-	    screenLat = 53.80;
-		screenLon = 35.07;
-		screenZoom = 4;
-	  }
-	}
+  var RADIUS = 50;
+  var removedList = [];
+  var screenLat, screenLon, screenZoom;
+  if (typeof(Storage) != "undefined") {
+    removedList = localStorage.removedList ? JSON.parse(localStorage.removedList) : [];
+    screenLat = localStorage.screenLat == "undefined" ? 0 : localStorage.screenLat;
+    screenLon = localStorage.screenLon == "undefined" ? 0 : localStorage.screenLon;
+    screenZoom = localStorage.screenZoom == "undefined" ? 0 : localStorage.screenZoom;
+    if (!screenZoom) {
+      screenLat = 53.80;
+      screenLon = 35.07;
+      screenZoom = 4;
+    }
+  }
 
   var map = new L.Map('map').addLayer(osm).setView(new L.LatLng(screenLat, screenLon), screenZoom);
 
@@ -126,30 +126,30 @@
   });
   map.addLayer(overpass);
 
-	var centerCircle = new L.Circle(map.getCenter(), RADIUS);
-	map.addLayer(centerCircle);
+  var centerCircle = new L.Circle(map.getCenter(), RADIUS);
+  map.addLayer(centerCircle);
 
   function moveHandler() {
-		var center = map.getCenter();
-		centerCircle.setLatLng(center);
-		var tmpArr = [];
-		for(var id in overpass.pois) {
-			var distance = center.distanceTo(overpass.pois[id].getLatLng());
-			if (distance <= RADIUS && removedList.indexOf(parseInt(id)) < 0)
-				tmpArr.push([id, overpass.pois[id]._osm_age]);
-		}
-		tmpArr.sort(function(a,b) {return b[1]-a[1]});
-		$("#pois").html("");
-		for(var i=0;i<tmpArr.length&&i<10;i++){
-			$("#pois").append("<div class='onepoi' poiid='"+tmpArr[i][0]+"'>"+overpass.pois[tmpArr[i][0]]._popup.getContent()+"</div>"); // use getPopup in leaflet 0.8
-		}
-		$(".onepoi").on("click", function(){
-			var id = this.getAttribute('poiid');
-			overpass.pois[id].openPopup();
-		});
-	}
+    var center = map.getCenter();
+    centerCircle.setLatLng(center);
+    var tmpArr = [];
+    for(var id in overpass.pois) {
+      var distance = center.distanceTo(overpass.pois[id].getLatLng());
+      if (distance <= RADIUS && removedList.indexOf(parseInt(id)) < 0)
+        tmpArr.push([id, overpass.pois[id]._osm_age]);
+    }
+    tmpArr.sort(function(a,b) {return b[1]-a[1]});
+    $("#pois").html("");
+    for(var i=0;i<tmpArr.length&&i<10;i++){
+      $("#pois").append("<div class='onepoi' poiid='"+tmpArr[i][0]+"'>"+overpass.pois[tmpArr[i][0]]._popup.getContent()+"</div>"); // use getPopup in leaflet 0.8
+    }
+    $(".onepoi").on("click", function(){
+      var id = this.getAttribute('poiid');
+      overpass.pois[id].openPopup();
+    });
+  }
   
-	map.on('move', moveHandler);
+  map.on('move', moveHandler);
   map.on('moveend', function() {
     var center = map.getCenter();
     if (typeof(Storage) != "undefined") {
@@ -158,60 +158,60 @@
       localStorage.screenZoom = map.getZoom();
     }
   });
-	
-	if(navigator.geolocation) {
-		var watchGps = 0;
-		function gps_on() { $("#gps").css("background-color", "#cfc");}
-		function gps_wrk(){ $("#gps").css("background-color", "brown");}
-		function gps_off(){ $("#gps").css("background-color", "red");}
-		$("#gps").on('click', function() {
-			if (watchGps == 0) {
-				gps_wrk();
-				watchGps = navigator.geolocation.watchPosition(function(position) {
-					gps_on();
-					//$("#pois").html("updated: " + position.coords.latitude + " " + position.coords.longitude);
-					map.setView(new L.LatLng(position.coords.latitude, position.coords.longitude), 17);
-				}, function(error) {
-					gps_off();
-					//alert("Sorry, no position available.");
-				}, {enableHighAccuracy:true});
-			} else {
-				gps_off();
-				navigator.geolocation.clearWatch(watchGps);
-				watchGps = 0;
-			}
-		});
-		$("#gps").click();
-	}
+  
+  if(navigator.geolocation) {
+    var watchGps = 0;
+    function gps_on() { $("#gps").css("background-color", "#cfc");}
+    function gps_wrk(){ $("#gps").css("background-color", "brown");}
+    function gps_off(){ $("#gps").css("background-color", "red");}
+    $("#gps").on('click', function() {
+      if (watchGps == 0) {
+        gps_wrk();
+        watchGps = navigator.geolocation.watchPosition(function(position) {
+          gps_on();
+          //$("#pois").html("updated: " + position.coords.latitude + " " + position.coords.longitude);
+          map.setView(new L.LatLng(position.coords.latitude, position.coords.longitude), 17);
+        }, function(error) {
+          gps_off();
+          //alert("Sorry, no position available.");
+        }, {enableHighAccuracy:true});
+      } else {
+        gps_off();
+        navigator.geolocation.clearWatch(watchGps);
+        watchGps = 0;
+      }
+    });
+    $("#gps").click();
+  }
 
   function update_in_db(id) {
     overpass.updatePoi(id);
     moveHandler();
   }
   
-	function remove_from_db(id) {
-		// show an alert for the first time
-		if (typeof(Storage) == "undefined") {
-			alert("Local storage is not accessible in your browser!");
-		} else {
-			removedList.push(id);
-			localStorage.removedList = JSON.stringify(removedList);
-			map.removeLayer(overpass.pois[id]);
-			var newCircle = overpass.create_circleMarker(overpass.osmPois[id], new Date());
-			map.addLayer(newCircle);
-		}
-	}
-	
-	var menuOpened = 0;
-	$('#menu').click(function() {
-		if(!menuOpened) {
-			$('#main').animate({marginLeft: '250px'}, 150, function(){menuOpened = true;});
-		} else {
-			$('#main').animate({marginLeft: '0'    }, 150, function(){menuOpened = false;});
-		}
-	});
+  function remove_from_db(id) {
+    // show an alert for the first time
+    if (typeof(Storage) == "undefined") {
+      alert("Local storage is not accessible in your browser!");
+    } else {
+      removedList.push(id);
+      localStorage.removedList = JSON.stringify(removedList);
+      map.removeLayer(overpass.pois[id]);
+      var newCircle = overpass.create_circleMarker(overpass.osmPois[id], new Date());
+      map.addLayer(newCircle);
+    }
+  }
+  
+  var menuOpened = 0;
+  $('#menu').click(function() {
+    if(!menuOpened) {
+      $('#main').animate({marginLeft: '250px'}, 150, function(){menuOpened = true;});
+    } else {
+      $('#main').animate({marginLeft: '0'    }, 150, function(){menuOpened = false;});
+    }
+  });
 
-	$("#menu ul").click(function(e) { e.stopPropagation();});
+  $("#menu ul").click(function(e) { e.stopPropagation();});
 
   </script>
 </body>

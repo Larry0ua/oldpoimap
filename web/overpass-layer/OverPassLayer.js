@@ -1,6 +1,6 @@
 L.Control.MinZoomIdenticator = L.Control.extend({
-	options: {
-		position: 'bottomleft',
+  options: {
+    position: 'bottomleft',
     },
 
     /**
@@ -10,10 +10,10 @@ L.Control.MinZoomIdenticator = L.Control.extend({
 
     /** TODO check if nessesary
      */
-	initialize: function (options) {
-		L.Util.setOptions(this, options);
+  initialize: function (options) {
+    L.Util.setOptions(this, options);
         this._layers = new Object();
-	},
+  },
 
     /**
      * adds a layer with minzoom information to this._layers
@@ -75,7 +75,7 @@ L.Control.MinZoomIdenticator = L.Control.extend({
 
     _updateBox: function (event) {
         //console.log("map moved -> update Container...");
-		if (event != null) {
+    if (event != null) {
             L.DomEvent.preventDefault(event);
         }
         var minzoomlevel = this._getMinZoomLevel();
@@ -206,7 +206,6 @@ L.OverPassExtendedLayer = L.FeatureGroup.extend({
       error: function() {
         alert("POI "+id+" was not saved");
       }
-      //success: this.options.callbackUpdateApi
     });
     var data = [{"id":id, updated:new Date()}];
     this.options.callbackUpdateApi.call(this, data);
