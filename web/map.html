@@ -29,70 +29,70 @@
       z-index: -1;
       width: 250px;
       height: 100%;
-    padding-left: 2em;
-    background-color: #aaa;
-    display: table;
+      padding-left: 2em;
+      background-color: #aaa;
+      display: table;
     }
-  .menu-img {
-    margin-left: -2em;
-    width: 2em;
-    height: 100%;
-    float:left;
-  }
-  #menu ul {
-    list-style-type:none;
-    margin:0;
-    padding:0;
-    margin-top: 40px;
-  }
-  #menu li {
-    width: 100%;
-    height: 30px;
-    border-bottom: 1px solid black;
-    cursor: pointer;
-  }
-  #map {
-    height: 60%;
-  }
-  #container {
-    position: relative;
-    height: 40%;
-    background-color: white;
-  }
-  #pois {
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
-  }
-  .onepoi {
-    float: left;
-    height: 100%;
-    width : 255px;
-    border-right: 1px solid black;
-    padding-left: 2px;
-  }
-  .onepoi th {
-    width: 100px;
-    max-width: 100px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .onepoi td {
-    width: 150px;
-    max-width: 150px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+    .menu-img {
+      margin-left: -2em;
+      width: 2em;
+      height: 100%;
+      float:left;
+    }
+    #menu ul {
+      list-style-type:none;
+      margin:0;
+      padding:0;
+      margin-top: 40px;
+    }
+    #menu li {
+      width: 100%;
+      height: 30px;
+      border-bottom: 1px solid black;
+      cursor: pointer;
+    }
+    #map {
+      height: 60%;
+    }
+    #container {
+      position: relative;
+      height: 40%;
+      background-color: white;
+    }
+    #pois {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+    }
+    .onepoi {
+      float: left;
+      height: 100%;
+      width : 255px;
+      border-right: 1px solid black;
+      padding-left: 2px;
+    }
+    .onepoi th {
+      width: 100px;
+      max-width: 100px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .onepoi td {
+      width: 150px;
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   </style>
 </head>
 <body>
   <div id="menu">
     <div class="menu-img"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACZElEQVRYR+2WTUhWQRSGNQVXuZIopQQ3RrgJ9/mJEZJQi9IiCMFCCFpEKuHGnwSJUKFNEJRFC7WgNv1sQm1p4ML+iAilVFJXFhKUi+p5YT65XGfmer/vqhsPvMydOXPOee/MnDOTm7PNkrvN8XN2CGS6AnvYulFwCOwCM+A4+Bx3SzMlcIFAd0PBrtPv3AwCR3BaA+6DrybAVdr+ULBb9K+YsSLaS2AKPPORilqB8xgPgnywCM6CJfDELH/Q93c6J8zAY9oy891Oe8NFwkegFqMXQHucrTSZFVznx0egl9lin4Q8xEmjzZGPQCkGE2Bvlgx+Yp8COg+xVkCTZThusXvO2AB4C/6Bg+AyOGeZq3PzyPUTUYewAsP3IeMu+t0Ohzr5t0O6Y/RfxSGwn8k6/YXgpPm7tP0YH0fNX7t8jqA4E1DO8T0Efpl2OmhoW4FPoaDB+XV0Xroim/FK2knHHPlW9VwTGwHtqUuKUSxEEFDN+A3yLPNWGSvIhsA+jFWQfKLAf7IhsJlb8BFiOtjeLdAhrAe7gVJIKZYWpaTuBd82KeUaAjazfD8AK+Ap0M3pJRDU29LwJhOuOfaghfG+kE6ElT1WiaoDKax8hegN+r/gMHAVotPodHnFJpBUKf5B5CrwzsZgqy6jewS/GJdAktexbkLdiOsk6gzIUOyV2ypAumyWgcptMDvkeB6cAipEw+CAidZF67o7NvQs1/5VAz3JvhmnbbTKhqDoidZqBkpo9W78AJR6TolaAZdhM4o7IWUH/R5fMJsuUwJ6pLwG5capio1uyS9bRSBunMS3YIdAYivwHzrDZiGFEu8fAAAAAElFTkSuQmCC" alt="menu"/></div>
-  <ul>
+    <ul>
       <li id="gps">Following GPS location</li>
-    <li id="getdel">Show removed POIs</li>
-    <li id="clrdel">Clear removed POIs list</li>
-  </ul>
+      <li id="getdel">Show removed POIs</li>
+      <li id="clrdel">Clear removed POIs list</li>
+    </ul>
   </div>
   <div id="main">
     <div id="map"></div>
