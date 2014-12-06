@@ -186,7 +186,7 @@ L.OverPassExtendedLayer = L.FeatureGroup.extend({
   },
   
   colorByDays: function(id, daysOld) {
-    if(removedList.indexOf(id)>=0) {
+    if(removedList[id]) {
       return 'black';
     }
     var color = 'red';

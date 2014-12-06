@@ -103,10 +103,10 @@
     attr_overpass = 'POI via <a href="http://www.overpass-api.de/">Overpass API</a>';
   var osm = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {opacity: 0.7, attribution: [attr_osm, attr_overpass].join(', ')});
   var RADIUS = 50;
-  var removedList = [];
+  var removedList = {};
   var screenLat, screenLon, screenZoom;
   if (typeof(Storage) != "undefined") {
-    removedList = localStorage.removedList ? JSON.parse(localStorage.removedList) : [];
+    removedList = localStorage.removedList ? JSON.parse(localStorage.removedList) : {};
     screenLat = localStorage.screenLat == "undefined" ? 0 : localStorage.screenLat;
     screenLon = localStorage.screenLon == "undefined" ? 0 : localStorage.screenLon;
     screenZoom = localStorage.screenZoom == "undefined" ? 0 : localStorage.screenZoom;
@@ -133,7 +133,7 @@
     var tmpArr = [];
     for(var id in overpass.pois) {
       var distance = center.distanceTo(overpass.pois[id].getLatLng());
-      if (distance <= RADIUS && removedList.indexOf(parseInt(id)) < 0)
+      if (distance <= RADIUS && !removedList[parseInt(id)])
         tmpArr.push([id, overpass.pois[id]._osm_age]);
     }
     tmpArr.sort(function(a,b) {return b[1]-a[1]});
@@ -162,7 +162,7 @@
     function gps_on() { $("#gps").css("background-color", "#cfc");}
     function gps_wrk(){ $("#gps").css("background-color", "brown");}
     function gps_off(){ $("#gps").css("background-color", "red");}
-    $("#gps").on('click', function() {
+    $("#gps").click(function() {
       if (watchGps == 0) {
         gps_wrk();
         watchGps = navigator.geolocation.watchPosition(function(position) {
@@ -192,13 +192,22 @@
     if (typeof(Storage) == "undefined") {
       alert("Local storage is not accessible in your browser!");
     } else {
-      removedList.push(id);
+      removedList[id] = overpass.osmPois[id].tags.name || id;
       localStorage.removedList = JSON.stringify(removedList);
-      map.removeLayer(overpass.pois[id]);
-      var newCircle = overpass.create_circleMarker(overpass.osmPois[id], new Date());
-      map.addLayer(newCircle);
+      overpass.redrawCircleMarker(id, new Date());
     }
   }
+  $("#getdel").click(function() {
+    var linkFormat = "<a href='http://www.openstreetmap.org/node/_id_'>_name_</a><br>";
+    var message = "";
+    for(var id in removedList) {
+      message += linkFormat.replace(/_id_/g, id).replace(/_name/g, removedList[id]);
+    }
+    alert(message);
+  });
+  $("#clrdel").click(function() {
+  
+  });
   
   var menuOpened = 0;
   $('#menu').click(function() {
