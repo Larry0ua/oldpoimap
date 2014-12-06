@@ -104,7 +104,7 @@ L.LatLngBounds.prototype.toOverpassBBoxString = function (){
 L.OverPassExtendedLayer = L.FeatureGroup.extend({
   options: {
     minzoom: 15,
-    query: "http://overpass-api.de/api/interpreter?data=[out:json];(QUERY);out meta;",
+    query: "http://overpass-api.de/api/interpreter?data=[out:json];(QUERY);out meta center;",
     updateApi: "api/poi/",
     tags : ["amenity=restaurant"],
     callbackOverpass: function(data) {
@@ -113,7 +113,9 @@ L.OverPassExtendedLayer = L.FeatureGroup.extend({
         }
         for(i=0;i<data.elements.length;i++) {
           e = data.elements[i];
-          if(e.type!="node") continue;
+          if(e.type!="node") {
+            e.id += e.type=="way"?1e12:2e12;
+          }
 
           if (e.id in this.instance._ids) return;
           this.instance._ids[e.id] = true;
@@ -170,6 +172,10 @@ L.OverPassExtendedLayer = L.FeatureGroup.extend({
   },
   
   createCircleMarker: function(e, modifiedTime) {
+    if (!e.lat || !e.lon) {
+      e.lat = e.center.lat;
+      e.lon = e.center.lon;
+    }
     var pos = new L.LatLng(e.lat, e.lon);
     var poiDate = Date.parse(modifiedTime);
     var daysOld = Math.round((new Date() - poiDate) / (60*60*24*1000));
@@ -290,12 +296,12 @@ L.OverPassExtendedLayer = L.FeatureGroup.extend({
         var query = "";
         for(var i=0;i<this.options.tags.length;i++) {
         query += "node(BBOX)["+this.options.tags[i]+"];";
-        //query += "way(BBOX)["+this.options.tags[i]+"];>;";
+        query += "way(BBOX)["+this.options.tags[i]+"];";
         }
         // add "node(BBOX)[(TAG)];" into QUERY
 
         $.ajax({
-          url: this.options.query.replace(/QUERY/g, query).replace(/(BBOX)/g, bbox.toOverpassBBoxString()),
+          url: this.options.query.replace(/QUERY/g, query).replace(/BBOX/g, bbox.toOverpassBBoxString()),
           context: { instance: this },
           crossDomain: true,
           dataType: "json",

@@ -120,7 +120,7 @@
   var map = new L.Map('map').addLayer(osm).setView(new L.LatLng(screenLat, screenLon), screenZoom);
 
   var overpass = new L.OverPassExtendedLayer({
-    tags: ["amenity","tourism","shop","historic"],
+    tags: [/*"amenity","tourism",*/"shop"/*,"historic"*/],
   });
   map.addLayer(overpass);
 
